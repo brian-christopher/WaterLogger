@@ -18,15 +18,19 @@ namespace WaterLogger.Pages
 		[BindProperty]
 		public DrinkingWaterModel DrinkingWater { get; set; }
 
+		public IEnumerable<KeyValuePair<string, int>> MeasuresList { get; set; }
+
 		public async Task OnGetAsync(int id)
 		{
 			DrinkingWater = await GetByIdAsync(id);
+			MeasuresList = EnumMethods.GetSelectList<Measures>();
 		}
 
 		public async Task<IActionResult> OnPostAsync()
 		{
 			if(!ModelState.IsValid)
 			{
+				MeasuresList = EnumMethods.GetSelectList<Measures>();
 				return Page();
 			}
 
@@ -34,12 +38,12 @@ namespace WaterLogger.Pages
 			{
 				connection.Open();
 				var tableCmd = connection.CreateCommand();
-				tableCmd.CommandText = $"UPDATE drinking_water SET Date = '{DrinkingWater.Date}', Quantity = '{DrinkingWater.Quantity}' WHERE Id = {DrinkingWater.Id}";
+				tableCmd.CommandText = $"UPDATE drinking_water SET Date = '{DrinkingWater.Date}', Quantity = '{DrinkingWater.Quantity}', Measure = '{(int)DrinkingWater.Measure}' WHERE Id = {DrinkingWater.Id}";
 
 				await tableCmd.ExecuteNonQueryAsync();
 			}
 
-			return RedirectToPage("./Index"); 
+			return RedirectToPage("./Index");
 		}
 
 		private async Task<DrinkingWaterModel> GetByIdAsync([FromForm] int id)
@@ -58,7 +62,8 @@ namespace WaterLogger.Pages
 				{
 					drinkingWaterRecord.Id = reader.GetInt32(0);
 					drinkingWaterRecord.Date = DateTime.Parse(reader.GetString(1), CultureInfo.CurrentCulture.DateTimeFormat);
-					drinkingWaterRecord.Quantity = reader.GetInt32(2);
+					drinkingWaterRecord.Quantity = reader.GetFloat(2);
+					drinkingWaterRecord.Measure = (Measures)reader.GetInt32(3);
 				}
 			}
 

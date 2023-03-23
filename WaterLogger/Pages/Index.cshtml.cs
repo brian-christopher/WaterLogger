@@ -42,7 +42,8 @@ namespace WaterLogger.Pages
 				{
 					Id = reader.GetInt32(0),
 					Date = DateTime.Parse(reader.GetString(1), CultureInfo.CurrentCulture.DateTimeFormat),
-					Quantity = reader.GetInt32(2)
+					Quantity = reader.GetInt32(2),
+					Measure = (Measures)reader.GetInt32(3)
 				};
 
 				tableData.Add(data);

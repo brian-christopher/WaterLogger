@@ -5,39 +5,43 @@ using WaterLogger.Models;
 
 namespace WaterLogger.Pages
 {
-    public class CreateModel : PageModel
-    {
-        private readonly IConfiguration _configuration;
+	public class CreateModel : PageModel
+	{
+		private readonly IConfiguration _configuration;
 
-        [BindProperty]
-        public DrinkingWaterModel DrinkingWater { get; set; }
+		[BindProperty]
+		public DrinkingWaterModel DrinkingWater { get; set; }
 
-        public CreateModel(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+		public IEnumerable<KeyValuePair<string, int>> MeasuresList { get; set; }
 
-        public void OnGet()
-        {
-        }
+		public CreateModel(IConfiguration configuration)
+		{
+			_configuration = configuration;
+		}
 
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
+		public void OnGet()
+		{
+			MeasuresList = EnumMethods.GetSelectList<Measures>();
+		}
 
-            await using (var connection = new SqliteConnection(_configuration.GetConnectionString("ConnectionString")))
-            {
-                connection.Open();
-                var tableCmd = connection.CreateCommand();
-                tableCmd.CommandText = @$"INSERT INTO drinking_water(date, quantity) VALUES('{DrinkingWater.Date}','{DrinkingWater.Quantity}')";
+		public async Task<IActionResult> OnPostAsync()
+		{
+			if (!ModelState.IsValid)
+			{
+				MeasuresList = EnumMethods.GetSelectList<Measures>();
+				return Page();
+			}
 
-                await tableCmd.ExecuteNonQueryAsync();
-            }
+			await using (var connection = new SqliteConnection(_configuration.GetConnectionString("ConnectionString")))
+			{
+				connection.Open();
+				var tableCmd = connection.CreateCommand();
+				tableCmd.CommandText = @$"INSERT INTO drinking_water(date, quantity, Measure) VALUES('{DrinkingWater.Date}','{DrinkingWater.Quantity}', '{(int)DrinkingWater.Measure}')";
 
-            return RedirectToPage("./Index");
-        }
-    }
+				await tableCmd.ExecuteNonQueryAsync();
+			}
+
+			return RedirectToPage("./Index");
+		}
+	}
 }
